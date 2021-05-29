@@ -1,5 +1,5 @@
 # connect4-pygame [currently unstable]
-A very simple version of the game Connect 4, written in Pygame
+A very simple version of the game Connect 4, written in Python with Pygame
 
 # To do:
 
