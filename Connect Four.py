@@ -56,7 +56,7 @@ class tile():
 
         self.status = "NONE"
 
-        self.colours = {"NONE" : (175, 175, 175), "RED" : (179, 45, 45), "YELLOW" : (255, 209, 18)}
+        self.colours = {"NONE" : (175, 175, 175), "RED" : (179, 45, 45), "YELLOW" : (255, 209, 18), "GREEN" : (92, 174, 89)}
 
     def __str__(self):
         return f"{self.status}, X:{self.x} Y:{self.y}"
@@ -66,6 +66,9 @@ class tile():
 
     def place(self, game):
         self.status = game.turn
+
+    def highlight(self):
+        self.status = "GREEN"
 
 
 def mouse_check(obj, m_x, m_y):
@@ -103,18 +106,88 @@ def place_column(tile, game):
 
     for y in range(6):
         tile_status = game.board[y][column].status
-        print(game.board[y][column])
         if tile_status != "NONE":
-            # place y-1 unless top row
+
+            # Place y-1 unless bottom row
             if y - 1 < 0:
-                print("UH OH")
-                return False
+                return (False, None)
+
             game.board[y - 1][column].place(game)
-            return True
-        if y == 5:
+            return (True, game.board[y - 1][column])
+
+        if y == game.grid_size_y - 1:
             game.board[y][column].place(game)
-            return True
-    return True
+            return (True, game.board[y][column])
+
+    return (False, None)
+
+
+def check_win(game, tile):
+    # do thing
+
+    def check_list_four(list):
+
+        subsequent = 0
+        previous = "NONE"
+        for item in list:
+            if item.status == previous:
+                subsequent += 1
+            else:
+                subsequent = 1
+
+            previous = item.status
+
+            if subsequent == 4 and item.status != "NONE":
+                print(item.status)
+                return item.status
+
+    row = game.board[tile.y]
+    check_list_four(row)
+
+    column = []
+    for i in game.board:
+        column.append(i[tile.x])
+    check_list_four(column)
+
+    # Left diagonal
+    diag_left = []
+
+    # Find origin of left diagonal
+
+    o_x = tile.x
+    o_y = tile.y
+    while o_x != 0 and o_y != 0:
+        o_x -= 1
+        o_y -= 1
+
+    while o_x != 7 and o_y != 6:
+        diag_left.append(game.board[o_y][o_x])
+        o_x += 1
+        o_y += 1
+
+    check_list_four(diag_left)
+
+    # Right diagonal
+    diag_right = []
+
+    # Find origin of left diagonal
+
+    o_x = tile.x
+    o_y = tile.y
+    while o_x != 6 and o_y != 0:
+        o_x += 1
+        o_y -= 1
+
+    print(f"{o_x}, {o_y}")
+
+    while o_x != -1 and o_y != 6:
+        diag_right.append(game.board[o_y][o_x])
+        game.board[o_y][o_x].highlight()
+        o_x -= 1
+        o_y += 1
+
+    print([str(i) for i in diag_right])
+    check_list_four(diag_right)
 
 
 class game_info():
@@ -177,8 +250,11 @@ while running:
 
     if mouse_press[0] and not mouse_held:
 
-        place_column(hover_column, game)
-        game.change_turn()
+        placement = place_column(hover_column, game)
+        if placement[0]:
+            check_win(game, placement[1])
+            game.change_turn()
+
         mouse_held = True
 
     elif not mouse_press[0]:
