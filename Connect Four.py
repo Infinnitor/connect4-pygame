@@ -6,7 +6,7 @@ pygame.init()  # become britsh
 
 
 # Function for creating a matrix, given the size
-def create_matrix(rows_len, columns_len):
+def create_matrix(rows_len, columns_len, game):
 
     # We first create an empty array
     grid_array = []
@@ -17,7 +17,7 @@ def create_matrix(rows_len, columns_len):
 
         # For every desired element in that row, we add in the insert
         for column in range(columns_len):
-            grid_array[row].append(tile(y=row, x=column, radius=tile_radius, padding=padding))
+            grid_array[row].append(tile(y=row, x=column, radius=game.tile_radius, padding=game.padding))
 
     # We then return the array
     return grid_array
@@ -56,16 +56,17 @@ class tile():
         self.gameY = y * self.square_side + padding[1]
 
         self.status = "NONE"
+
         self.colours = {"NONE" : (175, 175, 175), "RED" : (179, 45, 45), "YELLOW" : (255, 209, 18)}
 
     def __str__(self):
-        return self.status
+        return f"{self.status}, X:{self.x} Y:{self.y}"
 
     def display(self):
-        pygame.draw.circle(window, self.colours[self.status], (self.gameX, self.gameY), self.radius)
+        pygame.draw.circle(game.window, self.colours[self.status], (self.gameX, self.gameY), self.radius)
 
-    def place(self, turn):
-        self.status = turn
+    def place(self, game):
+        self.status = game.turn
 
 
 def mouse_check(obj, m_x, m_y):
@@ -97,70 +98,87 @@ def mouse_check(obj, m_x, m_y):
     return False
 
 
-def place_column(column):
-    global turn
-    # find the lowest empty space in the column
-    for x in board:
-        for y in board:
-            if x.x == column:
-                # if its not empty
-                #    place in the one above
-                # if its in the bottom row
-                #    place in itself
-                if x.status != "NONE":
-                    board[x.y - 1][x.x].place(turn)
-                elif x.y == 5:
-                    x.place(turn)
-                else:
-                    return False
+def place_column(tile, game):
 
-                if turn == "RED":
-                    turn = "YELLOW"
-                else:
-                    turn = "RED"
-                return True
+    column = tile.x
+
+    for y in range(6):
+        tile_status = game.board[y][column].status
+        print(game.board[y][column])
+        if tile_status != "NONE":
+            # place y-1 unless top row
+            if y - 1 < 0:
+                print("UH OH")
+                return False
+            game.board[y - 1][column].place(game)
+            return True
+        if y == 5:
+            game.board[y][column].place(game)
+            return True
+    return True
 
 
-# Variables that determine info about the tiles
-tile_radius = 50
-padding = (100, 100)
+class game_info():
+    def __init__(self, tile_radius, padding, grid_size_x, grid_size_y, start_turn):
 
-# Variables for the size of the grid (7x6)
-grid_size_x = 7
-grid_size_y = 6
+        # Variables that determine info about the tiles
+        self.tile_radius = tile_radius
+        self.padding = padding
 
-# We use MATHS to find out how big the screen should be
-win_width = grid_size_x * ((tile_radius + tile_radius // 4) * 2) + padding[0]
-win_height = grid_size_y * ((tile_radius + tile_radius // 4) * 2) + padding[1]
+        # Variables for the size of the grid (7x6)
+        self.grid_size_x = grid_size_x
+        self.grid_size_y = grid_size_y
 
-# We then create the screen
-window = pygame.display.set_mode((win_width, win_height))
+        # We use MATHS to find out how big the screen should be
+        self.win_width = grid_size_x * ((tile_radius + tile_radius // 4) * 2) + padding[0]
+        self.win_height = grid_size_y * ((tile_radius + tile_radius // 4) * 2) + padding[1]
 
-# And use create_matrix() to create a matrix filled with tile objects
-board = create_matrix(grid_size_y, grid_size_x)
+        self.turn = "RED"
+
+        # We then create the screen
+        self.window = pygame.display.set_mode((self.win_width, self.win_height))
+
+        # And use create_matrix() to create a matrix filled with tile objects
+        self.board = create_matrix(grid_size_y, grid_size_x, self)
+
+    def change_turn(self):
+        if self.turn == "RED":
+            self.turn = "YELLOW"
+        else:
+            self.turn = "RED"
+
+
+game = game_info(
+                tile_radius=50,
+                padding=(100, 100),
+                grid_size_x=7,
+                grid_size_y=6,
+                start_turn="RED")
+
+
+running = True
+mouse_held = False
 
 # THE mainloop amoug us
-
-turn = "RED"
-running = True
 while running:
-    for y in board:
+    for y in game.board:
         for x in y:
             x.display()
 
     mouse_press = pygame.mouse.get_pressed()
-    if mouse_press[0]:
+    if mouse_press[0] and not mouse_held:
         mouseX, mouseY = pygame.mouse.get_pos()
 
-        # for i in range(7):
-        #     if mouseX > (win_height / 6) * i and mouseX < (win_height / 6) * (i + 1):
-        #         pygame.draw.rect(window, (155, 155, 155), (((win_height - padding) / 6) * i, 0, (win_height - padding) / 7, win_height))
-        #         print(i)
-
-        for y in board:
+        for y in game.board:
             for x in y:
                 if mouse_check(x, mouseX, mouseY):
-                    x.place(turn)
+                    place_column(x, game)
+                    game.change_turn()
+
+        mouse_held = True
+
+    elif not mouse_press[0]:
+        mouse_held = False
 
     for event in pygame.event.get():
 
@@ -170,4 +188,4 @@ while running:
             running = False
 
     pygame.display.update()
-    window.fill((0, 0, 0))
+    game.window.fill((0, 0, 0))
