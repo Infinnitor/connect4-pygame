@@ -4,7 +4,6 @@ os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame
 pygame.init()  # become britsh
 
-
 # Function for creating a matrix, given the size
 def create_matrix(rows_len, columns_len, game):
 
@@ -81,13 +80,13 @@ def mouse_check(obj, m_x, m_y):
     # If the mouseX is within the width of the object
     if m_x > bounding_box["x1"]:
         mouseover_points += 1
-    if m_x < bounding_box["x2"]:
+    if m_x <= bounding_box["x2"]:
         mouseover_points += 1
 
     # If the mouseY is within the height of the object
     if m_y > bounding_box["y1"]:
         mouseover_points += 1
-    if m_y < bounding_box["y2"]:
+    if m_y <= bounding_box["y2"]:
         mouseover_points += 1
 
     # If all conditons are met, return True
@@ -141,6 +140,8 @@ class game_info():
         # And use create_matrix() to create a matrix filled with tile objects
         self.board = create_matrix(grid_size_y, grid_size_x, self)
 
+        self.hover_colours = {"YELLOW" : (153, 125, 10), "RED" : (77, 19, 19)}
+
     def change_turn(self):
         if self.turn == "RED":
             self.turn = "YELLOW"
@@ -161,24 +162,31 @@ mouse_held = False
 
 # THE mainloop amoug us
 while running:
-    for y in game.board:
-        for x in y:
-            x.display()
 
     mouse_press = pygame.mouse.get_pressed()
+    mouseX, mouseY = pygame.mouse.get_pos()
+
+    hover_column = False
+    for y in game.board:
+        for x in y:
+            if mouse_check(x, mouseX, mouseY):
+                hover_column = x
+
+    if hover_column:
+        pygame.draw.rect(game.window, game.hover_colours[game.turn], (hover_column.gameX - (hover_column.square_side / 2), 0, hover_column.square_side, game.win_height))
+
     if mouse_press[0] and not mouse_held:
-        mouseX, mouseY = pygame.mouse.get_pos()
 
-        for y in game.board:
-            for x in y:
-                if mouse_check(x, mouseX, mouseY):
-                    place_column(x, game)
-                    game.change_turn()
-
+        place_column(hover_column, game)
+        game.change_turn()
         mouse_held = True
 
     elif not mouse_press[0]:
         mouse_held = False
+
+    for y in game.board:
+        for x in y:
+            x.display()
 
     for event in pygame.event.get():
 
