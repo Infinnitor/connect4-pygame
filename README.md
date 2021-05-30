@@ -4,10 +4,12 @@ A very simple version of the game Connect 4, written in Python with Pygame
 # To do:
 
 Input functionality
-- [ ] Make and draw the actual grid
+- [x] Make and draw the actual grid
 - [x] Basic mouseover check
-- [ ] Mouseover highlight
+- [x] Mouseover highlight
 
 Gameplay
-- [ ] Add gravity
-- [ ] Add checks for Connect 4
+- [x] Add gravity
+- [x] Add checks for Connect 4
+- [ ] Add a win state
+- [ ] Potentially add an AI opponent

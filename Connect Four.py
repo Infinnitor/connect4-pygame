@@ -178,7 +178,6 @@ def check_win(game, tile):
         o_x += 1
         o_y -= 1
 
-
     while o_x != -1 and o_y != 6:
         diag_right.append(game.board[o_y][o_x])
         o_x -= 1
