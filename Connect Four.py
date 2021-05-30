@@ -178,15 +178,12 @@ def check_win(game, tile):
         o_x += 1
         o_y -= 1
 
-    print(f"{o_x}, {o_y}")
 
     while o_x != -1 and o_y != 6:
         diag_right.append(game.board[o_y][o_x])
-        game.board[o_y][o_x].highlight()
         o_x -= 1
         o_y += 1
 
-    print([str(i) for i in diag_right])
     check_list_four(diag_right)
 
 
