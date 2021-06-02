@@ -4,6 +4,7 @@ os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame
 pygame.init()  # become britsh
 
+
 # Function for creating a matrix, given the size
 def create_matrix(rows_len, columns_len, game):
 
@@ -108,7 +109,7 @@ def place_column(tile, game):
         tile_status = game.board[y][column].status
         if tile_status != "NONE":
 
-            # Place y-1 unless bottom row
+            # Place y - 1 unless bottom row
             if y - 1 < 0:
                 return (False, None)
 
@@ -138,16 +139,21 @@ def check_win(game, tile):
             previous = item.status
 
             if subsequent == 4 and item.status != "NONE":
-                print(item.status)
                 return item.status
 
+        return "NONE"
+
     row = game.board[tile.y]
-    check_list_four(row)
+    check = check_list_four(row)
+    if check != "NONE":
+        return check
 
     column = []
     for i in game.board:
         column.append(i[tile.x])
-    check_list_four(column)
+    check = check_list_four(column)
+    if check != "NONE":
+        return check
 
     # Left diagonal
     diag_left = []
@@ -165,7 +171,9 @@ def check_win(game, tile):
         o_x += 1
         o_y += 1
 
-    check_list_four(diag_left)
+    check = check_list_four(diag_left)
+    if check != "NONE":
+        return check
 
     # Right diagonal
     diag_right = []
@@ -183,7 +191,11 @@ def check_win(game, tile):
         o_x -= 1
         o_y += 1
 
-    check_list_four(diag_right)
+    check = check_list_four(diag_right)
+    if check != "NONE":
+        return check
+
+    return False
 
 
 class game_info():
@@ -248,7 +260,13 @@ while running:
 
         placement = place_column(hover_column, game)
         if placement[0]:
-            check_win(game, placement[1])
+
+            victory_check = check_win(game, placement[1])
+            if victory_check:
+                print(victory_check)
+                pygame.quit()
+                quit()
+
             game.change_turn()
 
         mouse_held = True
