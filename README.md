@@ -13,3 +13,4 @@ Gameplay
 - [x] Add checks for Connect 4
 - [ ] Add a win state
 - [ ] Potentially add an AI opponent
+- [ ] Display who's turn it is
