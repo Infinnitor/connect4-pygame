@@ -67,7 +67,7 @@ class tile():
         self.colours = {"NONE" : (175, 175, 175), "RED" : (179, 45, 45), "YELLOW" : (255, 209, 18), "GREEN" : (92, 174, 89)}
 
     # Represents the class when printed
-    def __str__(self):
+    def __repr__(self):
         return f"{self.status}, X:{self.x} Y:{self.y}"
 
     # Function for drawing the tile on the Pygame window
