@@ -311,33 +311,33 @@ while running:
     if hover_column:
         pygame.draw.rect(game.window, game.hover_colours[game.turn], (hover_column.gameX - (hover_column.square_side / 2), 0, hover_column.square_side, game.win_height))
 
-    # If the mouse is pressed, and was not held down last loop
-    if mouse_press[0] and not mouse_held:
+        # If the mouse is pressed, and was not held down last loop
+        if mouse_press[0] and not mouse_held:
 
-        # Then try to place in the given
-        placement = place_column(hover_column.x, game)
+            # Then try to place in the given
+            placement = place_column(hover_column.x, game)
 
-        # If the placement was successful, then check for victory
-        if placement[0]:
-            victory_check = check_win(game, placement[1])
+            # If the placement was successful, then check for victory
+            if placement[0]:
+                victory_check = check_win(game, placement[1])
 
-            # If someone won, then print the winner and quit
-            if victory_check:
-                print(victory_check)
+                # If someone won, then print the winner and quit
+                if victory_check:
+                    print(victory_check)
 
-                # We have not made a nice win screen yet lol
-                pygame.quit()
-                quit()
+                    # We have not made a nice win screen yet lol
+                    pygame.quit()
+                    quit()
 
-            # If it wasn't a victory that turn, give control over to the next player
-            else:
-                game.change_turn()
+                # If it wasn't a victory that turn, give control over to the next player
+                else:
+                    game.change_turn()
 
-        mouse_held = True
+            mouse_held = True
 
-    # If the mouse is not pressed, then allow it to be pressed in the next loop
-    elif not mouse_press[0]:
-        mouse_held = False
+        # If the mouse is not pressed, then allow it to be pressed in the next loop
+        elif not mouse_press[0]:
+            mouse_held = False
 
     # Display EVERYTHING
     for y in game.board:
