@@ -201,9 +201,14 @@ def main():
     # THE mainloop amoug us
     while running:
 
+        os.system('cls')
         print_matrix(game.board)
 
-        user_place = int(input("\nWhere do you want to place your piece?  "))
+        user_place = int(input("\nWhere do you want to place your piece?  ")) - 1
+
+        if user_place > 6 or user_place < 0:
+            input("Invalid placement [enter to continue]  ")
+            continue
 
         placement = place_column(user_place, game)
         if placement[0]:
@@ -216,9 +221,7 @@ def main():
             game.change_turn()
 
         else:
-            input("Invalid placement [enter to continue]")
-
-        os.system('cls')
+            input("Invalid placement [enter to continue]  ")
 
 
 main()
