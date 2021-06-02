@@ -1,3 +1,4 @@
+# OS is used for clearing the screen every turn
 import os
 
 
@@ -38,126 +39,167 @@ def print_matrix(matrix):
     return
 
 
+# Class for each tile in the game, represents both a space on the grid and one in the Pygame window
 class tile():
     def __init__(self, x, y, radius, padding):
+
+        # Position of the tile on the grid
         self.x = x
         self.y = y
 
+        # Radius that the tile will be drawn at
         self.radius = radius
 
         # The cube that forms around the circle is equal to the diameter, plus one quarter of the diameter
         self.square_side = ((radius + (radius // 4)) * 2)
 
+        # Position on the Pygame window, based off of grid position
         self.gameX = x * self.square_side + padding[0]
         self.gameY = y * self.square_side + padding[1]
 
+        # Status of the tile (either NONE, RED, or YELLOW)
         self.status = "NONE"
 
+        # Easily accessible dictionary of the colours that the tile can drawn in
         self.colours = {"NONE" : (175, 175, 175), "RED" : (179, 45, 45), "YELLOW" : (255, 209, 18), "GREEN" : (92, 174, 89)}
 
-    def __repr__(self):
-        # return f"{self.status}, X:{self.x} Y:{self.y}"
-        return self.status
+    # Represents the class when printed
+    def __str__(self):
+        return f"{self.status}, X:{self.x} Y:{self.y}"
 
+    # Function for easily changing the status of the tile
     def place(self, game):
         self.status = game.turn
 
 
+# Function for calculating the where to place a new piece, taking gravity into account
 def place_column(column, game):
 
-    for y in range(6):
+    # Iterate down through the given column
+    for y in range(game.grid_size_y):
         tile_status = game.board[y][column].status
+
+        # If it hits something, then place above
         if tile_status != "NONE":
 
-            # Place y - 1 unless bottom row
+            # If it's at the very top, then return False because column is thus full
             if y - 1 < 0:
                 return (False, None)
 
+            # Place it and return True to indicate that it was successful
             game.board[y - 1][column].place(game)
             return (True, game.board[y - 1][column])
 
+        # If it's at the bottom, then place at the bottom and return True
         if y == game.grid_size_y - 1:
             game.board[y][column].place(game)
             return (True, game.board[y][column])
 
+    # Safety clause
     return (False, None)
 
 
+# Function for checking for a win in every possible direction
 def check_win(game, tile):
-    # do thing
 
+    # Nested function that checks a list to see if there are four in a row of anything in it
     def check_list_four(list):
 
+        # Define variables for tracking the number of subsequent tiles
         subsequent = 0
         previous = "NONE"
+
+        # Loop through every item in the list
         for item in list:
+
+            # Increase the counter if the item that you are currently on is the same as the last one
             if item.status == previous:
                 subsequent += 1
+
+            # Decrease it if the streak is broken
             else:
                 subsequent = 1
 
+            # Once you have checked the current item, set the previous variable to it for the next cycle
             previous = item.status
 
+            # If there was a four in a row and it wasn't comprised of NONE, the return it
             if subsequent == 4 and item.status != "NONE":
                 return item.status
 
+        # Safety clause that returns NONE if there were no valid four-in-a-rows
         return "NONE"
 
+    # Create a list for the horizontal, based on the Y position of the target piece
     row = game.board[tile.y]
+
+    # Check the horizontal with check_list_four()
     check = check_list_four(row)
+
+    # If it returned a valid four-in-a-row, return the winning item
     if check != "NONE":
         return check
 
+    # For column, we have to use a for loop to get every item in the grid at a given X
     column = []
     for i in game.board:
         column.append(i[tile.x])
+
+    # Same logic for checking applies
     check = check_list_four(column)
     if check != "NONE":
         return check
 
-    # Left diagonal
+    # Diagonals are fucked up
+    # First, we define a list for the left diagonal
     diag_left = []
 
-    # Find origin of left diagonal
-
+    # Then we find the origin of left diagonal
     o_x = tile.x
     o_y = tile.y
+
+    # Decreasing the potential origin X and Y until all wall is hit
     while o_x != 0 and o_y != 0:
         o_x -= 1
         o_y -= 1
 
+    # We then go from the origin to the other wall, building the list as we go
     while o_x != 7 and o_y != 6:
         diag_left.append(game.board[o_y][o_x])
         o_x += 1
         o_y += 1
 
+    # The list is then in a form where it can be checked by the check_list_four() function
     check = check_list_four(diag_left)
     if check != "NONE":
         return check
 
-    # Right diagonal
+    # Right diagonal is even worse
     diag_right = []
 
-    # Find origin of left diagonal
-
+    # We find the origin by going up and right
     o_x = tile.x
     o_y = tile.y
     while o_x != 6 and o_y != 0:
         o_x += 1
         o_y -= 1
 
+    # We then decrease, but we have to be fucking careful because of order of events and shit, or else we get an incomplete list
     while o_x != -1 and o_y != 6:
         diag_right.append(game.board[o_y][o_x])
         o_x -= 1
         o_y += 1
 
+    # And it can be checked by the function
     check = check_list_four(diag_right)
     if check != "NONE":
         return check
 
+    # Safety clause
     return False
 
 
+# Epic class that we use for all important game info, can be passed around easily
 class game_info():
     def __init__(self, tile_radius, padding, grid_size_x, grid_size_y, start_turn):
 
@@ -169,17 +211,13 @@ class game_info():
         self.grid_size_x = grid_size_x
         self.grid_size_y = grid_size_y
 
-        # We use MATHS to find out how big the screen should be
-        self.win_width = grid_size_x * ((tile_radius + tile_radius // 4) * 2) + padding[0]
-        self.win_height = grid_size_y * ((tile_radius + tile_radius // 4) * 2) + padding[1]
-
+        # Current turn, red starts first
         self.turn = "RED"
 
         # And use create_matrix() to create a matrix filled with tile objects
         self.board = create_matrix(grid_size_y, grid_size_x, self)
 
-        self.hover_colours = {"YELLOW" : (153, 125, 10), "RED" : (77, 19, 19)}
-
+    # Function for easily changing the current turn
     def change_turn(self):
         if self.turn == "RED":
             self.turn = "YELLOW"
@@ -187,8 +225,10 @@ class game_info():
             self.turn = "RED"
 
 
+# Main function (we have to call it from another source)
 def main():
 
+    # Instantiating the game_info class
     game = game_info(
                     tile_radius=50,
                     padding=(100, 100),
@@ -196,30 +236,38 @@ def main():
                     grid_size_y=6,
                     start_turn="RED")
 
+    # g@me is running!!!!!
     running = True
 
     # THE mainloop amoug us
     while running:
 
+        # Clear the screen and print the board
         os.system('cls')
         print_matrix(game.board)
 
+        # Ask the user for input (not sanitised yet lol)
         user_place = int(input("\nWhere do you want to place your piece?  ")) - 1
 
+        # If the input is off the grid, declare it invalid
         if user_place > 6 or user_place < 0:
             input("Invalid placement [enter to continue]  ")
             continue
 
+        # Placing the piece in the desired column
         placement = place_column(user_place, game)
         if placement[0]:
 
+            # Check for victory if the placement was valid
             victory_check = check_win(game, placement[1])
             if victory_check:
                 print(f"{victory_check} wins!")
                 quit()
 
+            # Change the turn
             game.change_turn()
 
+        # If the placement was invalid, say so
         else:
             input("Invalid placement [enter to continue]  ")
 
