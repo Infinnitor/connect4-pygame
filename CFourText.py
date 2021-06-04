@@ -1,5 +1,6 @@
-# OS is used for clearing the screen every turn
-import os
+# RED: U+1F534
+# YELLOW: U+1F7E1
+# WHITE: U+26AA
 
 
 # Function for creating a matrix, given the size
@@ -21,7 +22,7 @@ def create_matrix(rows_len, columns_len, game):
 
 
 # Function for printing out a matrix in a readable manner. The function takes a matrix (list of lists) as a parameter
-def print_matrix(matrix):
+def return_matrix(matrix):
 
     # We create an empty array that will hold all our rows
     matrix_print = []
@@ -34,9 +35,9 @@ def print_matrix(matrix):
         matrix_print.append("\t".join(col))
 
     # We then join up matrix_print and display it
-    print("\n".join(matrix_print))
+    final_matrix = "\n".join(matrix_print)
 
-    return
+    return final_matrix
 
 
 # Class for each tile in the game, represents both a space on the grid and one in the Pygame window
@@ -225,51 +226,39 @@ class game_info():
             self.turn = "RED"
 
 
-# Main function (we have to call it from another source)
-def main():
-
-    # Instantiating the game_info class
-    game = game_info(
-                    tile_radius=50,
-                    padding=(100, 100),
-                    grid_size_x=7,
-                    grid_size_y=6,
-                    start_turn="RED")
-
-    # g@me is running!!!!!
-    running = True
-
-    # THE mainloop amoug us
-    while running:
-
-        # Clear the screen and print the board
-        os.system('cls')
-        print_matrix(game.board)
-
-        # Ask the user for input (not sanitised yet lol)
-        user_place = int(input("\nWhere do you want to place your piece?  ")) - 1
-
-        # If the input is off the grid, declare it invalid
-        if user_place > 6 or user_place < 0:
-            input("Invalid placement [enter to continue]  ")
-            continue
-
-        # Placing the piece in the desired column
-        placement = place_column(user_place, game)
-        if placement[0]:
-
-            # Check for victory if the placement was valid
-            victory_check = check_win(game, placement[1])
-            if victory_check:
-                print(f"{victory_check} wins!")
-                quit()
-
-            # Change the turn
-            game.change_turn()
-
-        # If the placement was invalid, say so
-        else:
-            input("Invalid placement [enter to continue]  ")
+# Instantiating the game_info class
+game = game_info(
+                tile_radius=50,
+                padding=(100, 100),
+                grid_size_x=7,
+                grid_size_y=6,
+                start_turn="RED")
 
 
-main()
+# THE mainloop amoug us
+def take_turn(player_column):
+
+    # Ask the user for input (not sanitised yet lol)
+    user_place = player_column
+
+    # If the input is off the grid, declare it invalid
+    if user_place > 6 or user_place < 0:
+        return (False, None)
+
+    # Placing the piece in the desired column
+    placement = place_column(user_place, game)
+    if placement[0]:
+
+        # Check for victory if the placement was valid
+        victory_check = check_win(game, placement[1])
+        if victory_check:
+            return "WIN"
+
+        # Change the turn
+        game.change_turn()
+
+    # If the placement was invalid, say so
+    else:
+        return (False, None)
+
+    return (True, game.board)
