@@ -1,6 +1,7 @@
 # RED: U+1F534
 # YELLOW: U+1F7E1
 # WHITE: U+26AA
+import os
 
 
 # Function for creating a matrix, given the size
